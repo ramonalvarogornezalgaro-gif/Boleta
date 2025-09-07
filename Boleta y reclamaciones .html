@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Boleta, Factura y Libro de Reclamaciones</title>
+  <style>
+    :root{
+      --bg:#0f172a; /* slate-900 */
+      --card:#111827ee; /* gray-900 */
+      --text:#e5e7eb; /* gray-200 */
+      --muted:#9ca3af; /* gray-400 */
+      --accent:#22d3ee; /* cyan-400 */
+      --accent-2:#a78bfa; /* violet-400 */
+      --ok:#34d399; --warn:#f59e0b; --danger:#f87171;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial;
+      background: radial-gradient(1200px 500px at 20% -10%, #1e293b, transparent) ,
+                  radial-gradient(800px 400px at 110% 10%, #1f2937, transparent),
+                  var(--bg);
+      color:var(--text);
+      line-height:1.35;
+    }
+    header{
+      padding:28px 16px 8px; text-align:center;
+    }
+    h1{ font-size: clamp(20px, 3vw, 34px); margin:0 0 8px; letter-spacing:.3px }
+    p.lead{ color:var(--muted); margin:0 0 18px }
+    .wrap{
+      max-width:1100px; margin:0 auto; padding:12px 16px 40px;
+      display:grid; gap:18px; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    }
+    .card{
+      background:linear-gradient(180deg, #0b1220, #0b1220) padding-box,
+                 conic-gradient(from 180deg at 50% 50%, var(--accent), var(--accent-2), var(--accent)) border-box;
+      border:1px solid transparent;
+      border-radius:18px; padding:18px; box-shadow: 0 10px 30px rgba(0,0,0,.25);
+    }
+    .card h2{ margin:0 0 12px; font-size:20px }
+    .grid{ display:grid; gap:10px; grid-template-columns:1fr 1fr }
+    .grid-1{ grid-template-columns:1fr }
+    label{ font-size:12px; color:var(--muted) }
+    input, select, textarea{
+      width:100%; padding:10px 12px; border-radius:12px; border:1px solid #27324a;
+      background:#0b1220; color:var(--text); outline:none;
+    }
+    textarea{ min-height:96px; resize:vertical }
+    .row{ display:flex; gap:10px }
+    .row > *{ flex:1 }
+    .actions{ display:flex; gap:10px; flex-wrap:wrap; margin-top:10px }
+    button{
+      padding:10px 14px; border-radius:12px; border:0; cursor:pointer; font-weight:600;
+      background:linear-gradient(90deg, var(--accent), var(--accent-2));
+      color:#0b1220;
+    }
+    button.secondary{ background:#0b1220; color:var(--text); border:1px solid #27324a }
+    .qr{
+      display:flex; align-items:center; gap:14px; padding:14px; border:1px dashed #27324a; border-radius:14px;
+      background: rgba(255,255,255,.02);
+    }
+    .qr img{ width:124px; height:124px; border-radius:10px; background:#fff }
+    .note{ font-size:12px; color:var(--muted) }
+    footer{ text-align:center; padding:18px; font-size:12px; color:var(--muted) }
+    /* Print */
+    @media print{
+      body{ background:#fff; color:#000 }
+      .card{ box-shadow:none; background:#fff; border:1px solid #ccc }
+      button, .note, .qr{ display:none !important }
+      header{ text-align:left }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Boleta, Factura y Libro de Reclamaciones</h1>
+    <p class="lead">Completa tus datos y usa el QR para llevar a esta página en físico o desde un afiche.</p>
+  </header>
+
+  <div class="wrap">
+
+    <section class="card">
+      <h2>Boleta</h2>
+      <div class="grid">
+        <div>
+          <label>Nombre</label>
+          <input type="text" id="boleta_nombre" placeholder="Nombre y apellidos" />
+        </div>
+        <div>
+          <label>DNI</label>
+          <input type="text" id="boleta_dni" placeholder="########" />
+        </div>
+        <div>
+          <label>Teléfono</label>
+          <input type="tel" id="boleta_tel" placeholder="9########" />
+        </div>
+        <div>
+          <label>Correo electrónico</label>
+          <input type="email" id="boleta_email" placeholder="tucorreo@ejemplo.com" />
+        </div>
+        <div>
+          <label>Dirección</label>
+          <input type="text" id="boleta_dir" placeholder="Calle, número, distrito" />
+        </div>
+        <div>
+          <label>Fecha</label>
+          <input type="date" id="boleta_fecha"/>
+        </div>
+        <div>
+          <label>Producto y servicio adquirido</label>
+          <input type="text" id="boleta_producto" placeholder="Descripción breve" />
+        </div>
+        <div>
+          <label>Monto (S/)</label>
+          <input type="number" step="0.01" id="boleta_monto" placeholder="0.00" />
+        </div>
+      </div>
+      <div class="actions">
+        <button onclick="print()">Imprimir / Guardar PDF</button>
+        <button class="secondary" onclick="descargarJSON('boleta')">Descargar JSON</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Factura</h2>
+      <div class="grid">
+        <div>
+          <label>Razón social</label>
+          <input type="text" id="factura_rs" placeholder="Empresa S.A.C." />
+        </div>
+        <div>
+          <label>RUC</label>
+          <input type="text" id="factura_ruc" placeholder="20###########" />
+        </div>
+        <div>
+          <label>Dirección</label>
+          <input type="text" id="factura_dir" placeholder="Calle, número, distrito" />
+        </div>
+        <div>
+          <label>Correo electrónico</label>
+          <input type="email" id="factura_email" placeholder="facturacion@empresa.com" />
+        </div>
+        <div>
+          <label>Producto y servicio adquirido</label>
+          <input type="text" id="factura_producto" placeholder="Descripción breve" />
+        </div>
+        <div>
+          <label>Monto (S/)</label>
+          <input type="number" step="0.01" id="factura_monto" placeholder="0.00" />
+        </div>
+        <div>
+          <label>Fecha</label>
+          <input type="date" id="factura_fecha"/>
+        </div>
+        <div>
+          <label>Tipo de comprobante</label>
+          <select id="factura_tipo">
+            <option>Factura</option>
+            <option>Proforma</option>
+            <option>Nota de venta</option>
+          </select>
+        </div>
+      </div>
+      <div class="actions">
+        <button onclick="print()">Imprimir / Guardar PDF</button>
+        <button class="secondary" onclick="descargarJSON('factura')">Descargar JSON</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Libro de Reclamaciones (Perú)</h2>
+      <div class="grid-1 grid">
+        <div class="row">
+          <div>
+            <label>Nombre</label>
+            <input type="text" id="lr_nombre" placeholder="Nombre y apellidos" />
+          </div>
+          <div>
+            <label>DNI/CE</label>
+            <input type="text" id="lr_dni" placeholder="########" />
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label>Domicilio</label>
+            <input type="text" id="lr_dom" placeholder="Dirección completa" />
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label>Teléfono</label>
+            <input type="tel" id="lr_tel" placeholder="9########" />
+          </div>
+          <div>
+            <label>Correo electrónico</label>
+            <input type="email" id="lr_mail" placeholder="tucorreo@ejemplo.com" />
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label>Bien contratado</label>
+            <select id="lr_bien">
+              <option>Producto</option>
+              <option>Servicio</option>
+            </select>
+          </div>
+          <div>
+            <label>Tipo</label>
+            <select id="lr_tipo">
+              <option>Reclamo (disconformidad con el producto/servicio)</option>
+              <option>Queja (malestar o descontento)</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label>Detalle</label>
+          <textarea id="lr_detalle" placeholder="Describe lo ocurrido"></textarea>
+        </div>
+        <div>
+          <label>Pedido del consumidor</label>
+          <textarea id="lr_pedido" placeholder="¿Qué solicitas como solución?"></textarea>
+        </div>
+      </div>
+      <p class="note">Nota: Esta sección está inspirada en el formato de Indecopi. La empresa debe responder en
+      los plazos legales vigentes.</p>
+      <div class="actions">
+        <button onclick="print()">Imprimir / Guardar PDF</button>
+        <button class="secondary" onclick="descargarJSON('libro_reclamaciones')">Descargar JSON</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>QR de acceso a esta página</h2>
+      <div class="qr">
+        <img id="qr-img" src="qr.png" alt="QR a esta página" />
+        <div>
+          <div class="row">
+            <input type="url" id="qr-url" placeholder="https://tusitio.com/boleta-factura-reclamos" />
+            <button class="secondary" onclick="actualizarQR()">Actualizar QR</button>
+          </div>
+          <p class="note">El QR apunta a la URL indicada. Cambia la URL y vuelve a generar el QR para tus afiches o comprobantes.</p>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="secondary" onclick="descargarQR()">Descargar QR mostrado</button>
+      </div>
+    </section>
+
+  </div>
+
+  <footer>
+    © 2025 — Página de ejemplo lista para publicar. Puedes renombrar el archivo a <strong>index.html</strong> y subirlo a tu hosting.
+  </footer>
+
+  <script>
+    // Guarda cada bloque como JSON
+    function descargarJSON(tipo){
+      const data = {};
+      const sel = tipo === 'boleta' ? [
+        'boleta_nombre','boleta_dni','boleta_tel','boleta_email','boleta_dir','boleta_fecha','boleta_producto','boleta_monto'
+      ] : tipo === 'factura' ? [
+        'factura_rs','factura_ruc','factura_dir','factura_email','factura_producto','factura_monto','factura_fecha','factura_tipo'
+      ] : [
+        'lr_nombre','lr_dni','lr_dom','lr_tel','lr_mail','lr_bien','lr_tipo','lr_detalle','lr_pedido'
+      ];
+      sel.forEach(id=>{
+        const el=document.getElementById(id);
+        data[id]= el ? (el.tagName==='SELECT'? el.value : el.value) : null;
+      });
+      const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+      const a=document.createElement('a');
+      a.href=URL.createObjectURL(blob);
+      a.download=`${tipo}.json`; a.click(); URL.revokeObjectURL(a.href);
+    }
+
+    // Permite cambiar el QR mostrado a partir de una URL (usa un servicio de QR sin dependencias).
+    function actualizarQR(){
+      const url = document.getElementById('qr-url').value || window.location.href;
+      // Servicio de QR: api.qrserver.com
+      const src = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(url)}`;
+      const img = document.getElementById('qr-img');
+      img.src = src;
+    }
+    function descargarQR(){
+      const img = document.getElementById('qr-img');
+      const a=document.createElement('a'); a.href=img.src; a.download='qr.png'; a.click();
+    }
+  </script>
+</body>
+</html>
